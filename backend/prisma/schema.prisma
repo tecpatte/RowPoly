@@ -1,0 +1,165 @@
+// RowPoly — Prisma schema. The live game runs in memory (authoritative engine);
+// PostgreSQL persists identity, rooms, the board/cards reference, an event log
+// and final results. Enough to resume, audit and show stats.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GameStatus {
+  WAITING
+  STARTING
+  PLAYING
+  FINISHED
+  CANCELLED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  nickname     String       @unique
+  passwordHash String
+  avatar       String?
+  isGuest      Boolean      @default(false)
+  // Aggregate stats (denormalised for the leaderboard).
+  gamesPlayed   Int    @default(0)
+  wins          Int    @default(0)
+  losses        Int    @default(0)
+  bankruptcies  Int    @default(0)
+  moneyEarned   Int    @default(0)
+  moneyLost     Int    @default(0)
+  propsAcquired Int    @default(0)
+  timePlayedSec Int    @default(0)
+  createdAt    DateTime     @default(now())
+
+  hostedGames  Game[]        @relation("HostGames")
+  players      GamePlayer[]
+  results      GameResult[]
+}
+
+model Game {
+  id         String     @id @default(cuid())
+  code       String     @unique
+  status     GameStatus @default(WAITING)
+  isPrivate  Boolean    @default(false)
+  maxPlayers Int        @default(6)
+  settings   Json       @default("{}")
+  hostId     String
+  host       User       @relation("HostGames", fields: [hostId], references: [id])
+  winnerId   String?
+  createdAt  DateTime   @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  players      GamePlayer[]
+  events       GameEvent[]
+  transactions Transaction[]
+  trades       TradeRecord[]
+  results      GameResult[]
+}
+
+model GamePlayer {
+  id         String   @id @default(cuid())
+  gameId     String
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  nickname   String
+  color      String
+  order      Int
+  finalMoney Int      @default(0)
+  isWinner   Boolean  @default(false)
+  joinedAt   DateTime @default(now())
+
+  @@unique([gameId, userId])
+}
+
+// Board reference (the 40 tiles of MONOPOLY COLOMBIA). Populated by the seed.
+model Property {
+  id          String  @id @default(cuid())
+  position    Int     @unique
+  type        String
+  name        String
+  region      String?
+  description String?
+  group       String?
+  color       String?
+  price       Int?
+  baseRent    Int?
+  setRent     Int?
+  houseRent1  Int?
+  houseRent2  Int?
+  houseRent3  Int?
+  houseRent4  Int?
+  hotelRent   Int?
+  houseCost   Int?
+  hotelCost   Int?
+  deck        String?
+  taxAmount   Int?
+}
+
+model Card {
+  id          String  @id
+  deck        String
+  title       String
+  description String
+  action      String
+  amount      Int?
+  position    Int?
+  movement    Int?
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  playerId  String
+  type      String
+  amount    Int
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model TradeRecord {
+  id                String   @id @default(cuid())
+  gameId            String
+  game              Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  fromPlayerId      String
+  toPlayerId        String
+  offerMoney        Int      @default(0)
+  requestMoney      Int      @default(0)
+  offerProperties   Int[]
+  requestProperties Int[]
+  status            String
+  createdAt         DateTime @default(now())
+}
+
+// Immutable game event log for auditing / anti-cheat.
+model GameEvent {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type      String
+  playerId  String?
+  message   String
+  data      Json?
+  createdAt DateTime @default(now())
+}
+
+model GameResult {
+  id         String   @id @default(cuid())
+  gameId     String
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  placement  Int
+  finalMoney Int
+  isWinner   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([gameId, userId])
+}

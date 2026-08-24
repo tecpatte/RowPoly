@@ -1,0 +1,14 @@
+{
+  "name": "rowpoly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RowPoly — juego de mesa inmobiliario multijugador online (Monopoly Colombia).",
+  "scripts": {
+    "up": "docker compose up --build",
+    "down": "docker compose down",
+    "seed": "npm --prefix backend run seed",
+    "test": "npm --prefix backend test",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  }
+}

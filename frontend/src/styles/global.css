@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px) rotate(-2deg); }
+  to { opacity: 1; transform: translateY(0) rotate(-2deg); }
+}
+
+/* Reusable entrance choreography. Panels rise + fade; add rp-delay-N for stagger. */
+@keyframes rpRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rpPop {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes rpSheen {
+  from { transform: translateX(-120%) skewX(-18deg); }
+  to { transform: translateX(220%) skewX(-18deg); }
+}
+
+body {
+  @apply bg-base-900 text-slate-100 font-body;
+  background-image: radial-gradient(circle at 20% 0%, rgba(31, 143, 95, 0.12), transparent 40%),
+    radial-gradient(circle at 90% 100%, rgba(244, 196, 48, 0.08), transparent 45%);
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold transition
+      disabled:opacity-40 disabled:cursor-not-allowed
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2 focus-visible:ring-offset-base-900;
+  }
+  .btn-gold {
+    @apply btn bg-gold-400 text-base-900 hover:bg-gold-500;
+  }
+  .btn-emerald {
+    @apply btn bg-emerald-500 text-white hover:bg-emerald-600;
+  }
+  .btn-ghost {
+    @apply btn border border-base-600 text-slate-200 hover:bg-base-700;
+  }
+  .btn {
+    @apply active:translate-y-px hover:-translate-y-px;
+  }
+  .card {
+    @apply rounded-2xl border border-base-600 bg-base-800/80 backdrop-blur p-5 shadow-xl;
+  }
+  .input {
+    @apply w-full rounded-lg border border-base-600 bg-base-900 px-3 py-2 text-slate-100
+      outline-none transition focus:border-gold-400 focus:ring-2 focus:ring-gold-400/30;
+  }
+}
+
+@layer utilities {
+  .rp-rise { animation: rpRise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .rp-pop { animation: rpPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .rp-delay-1 { animation-delay: 0.06s; }
+  .rp-delay-2 { animation-delay: 0.12s; }
+  .rp-delay-3 { animation-delay: 0.18s; }
+  .rp-delay-4 { animation-delay: 0.24s; }
+  /* Gold sweep for hero buttons: put on a relative, overflow-hidden element. */
+  .rp-sheen::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    animation: rpSheen 2.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+/* Always honour reduced motion: kill decorative motion, keep content visible. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .rp-sheen::after { display: none; }
+}

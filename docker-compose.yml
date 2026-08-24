@@ -1,0 +1,58 @@
+# RowPoly — full stack. `docker compose up --build` boots PostgreSQL, seeds the
+# MONOPOLY COLOMBIA board and serves backend + frontend.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rowpoly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rowpoly}
+      POSTGRES_DB: ${POSTGRES_DB:-rowpoly}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-rowpoly}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-rowpoly}:${POSTGRES_PASSWORD:-rowpoly}@postgres:5432/${POSTGRES_DB:-rowpoly}
+      JWT_SECRET: ${JWT_SECRET:-rowpoly_dev_secret_change_me}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-rowpoly_dev_refresh_change_me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
+      PORT: '3001'
+    ports:
+      - '3001:3001'
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001/api}
+        PUBLIC_WS_URL: ${PUBLIC_WS_URL:-http://localhost:3001}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      HOST: '0.0.0.0'
+      PORT: '4321'
+    ports:
+      - '4321:4321'
+
+  # Optional — reserved for future distributed game state (section 1). Not used
+  # by the MVP; uncomment to have it available.
+  # redis:
+  #   image: redis:7-alpine
+  #   ports: ['6379:6379']
+
+volumes:
+  pgdata:
