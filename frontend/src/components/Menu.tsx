@@ -62,8 +62,29 @@ export function Menu() {
           <h2 className="font-display text-xl font-bold">Crear partida</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <label className="space-y-1">
-              <span className="text-slate-400">Dinero inicial</span>
-              <input type="number" className="input" value={board.startingMoney} min={500} max={5000} step={100} onChange={(e) => setBoard({ ...board, startingMoney: +e.target.value })} />
+              <span className="text-slate-400">Dinero inicial por jugador</span>
+              <input
+                type="number"
+                className="input"
+                value={board.startingMoney}
+                min={500}
+                max={20000}
+                step={100}
+                onChange={(e) => setBoard({ ...board, startingMoney: +e.target.value })}
+                onBlur={(e) => setBoard({ ...board, startingMoney: Math.min(20000, Math.max(500, Math.round((+e.target.value || 1500) / 100) * 100)) })}
+              />
+              <div className="flex flex-wrap gap-1 pt-1">
+                {[1500, 2500, 5000, 10000].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className={`rounded-full border px-2 py-0.5 text-[11px] ${board.startingMoney === v ? 'border-gold-400 bg-gold-400/20 text-gold-400' : 'border-base-600 text-slate-300 hover:bg-base-700'}`}
+                    onClick={() => setBoard({ ...board, startingMoney: v })}
+                  >
+                    ${v.toLocaleString('es-CO')}
+                  </button>
+                ))}
+              </div>
             </label>
             <label className="space-y-1">
               <span className="text-slate-400">Máx. jugadores</span>

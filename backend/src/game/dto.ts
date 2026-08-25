@@ -15,7 +15,7 @@ export class CreateRoomDto {
   @IsOptional()
   @IsInt()
   @Min(500)
-  @Max(5000)
+  @Max(20000)
   startingMoney?: number;
 }
 
