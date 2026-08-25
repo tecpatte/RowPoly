@@ -47,7 +47,8 @@ type Command =
   | 'SELL_BUILDING'
   | 'PAY_BAIL'
   | 'PROPOSE_TRADE'
-  | 'RESPOND_TRADE';
+  | 'RESPOND_TRADE'
+  | 'DECLARE_BANKRUPTCY';
 
 @Injectable()
 export class GameManager {
@@ -215,6 +216,9 @@ export class GameManager {
         break;
       case 'RESPOND_TRADE':
         events = engine.respondTrade(state, userId, payload.tradeId, !!payload.accept);
+        break;
+      case 'DECLARE_BANKRUPTCY':
+        events = engine.declareBankruptcy(state, userId);
         break;
       default:
         throw new Error('Comando desconocido.');

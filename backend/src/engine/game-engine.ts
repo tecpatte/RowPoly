@@ -344,6 +344,18 @@ export class GameEngine {
     return state.log.slice(start);
   }
 
+  // Voluntary surrender: liquidate to the bank and drop out. Allowed on any turn.
+  declareBankruptcy(state: GameState, userId: string): GameEvent[] {
+    if (state.phase === 'ENDED') throw new Error('La partida ya terminó.');
+    const player = this.playerByUser(state, userId);
+    if (player.bankrupt) throw new Error('Ya estás fuera de la partida.');
+    const start = state.log.length;
+    const wasCurrent = this.current(state).id === player.id;
+    this.bankrupt(state, player, null, 'se rindió');
+    if (wasCurrent && (state.phase as Phase) !== 'ENDED') this.finishTurn(state);
+    return state.log.slice(start);
+  }
+
   // ---- Reconnection helpers ----------------------------------------------
   setConnected(state: GameState, userId: string, connected: boolean): void {
     const p = state.players.find((pl) => pl.userId === userId);

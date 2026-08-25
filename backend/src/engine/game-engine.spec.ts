@@ -241,4 +241,15 @@ describe('GameEngine — economía autoritativa', () => {
     expect(s.players[0].money).toBe(1400);
     expect(s.players[1].money).toBe(1600);
   });
+
+  it('rendirse en bancarrota libera propiedades, pasa el turno y puede terminar la partida', () => {
+    const s = fresh();
+    s.ownerships[3] = own(3, 'p0');
+    const e = new GameEngine(BOARD, CARDS, GAME_CONFIG);
+    e.declareBankruptcy(s, 'u1'); // u1 es el jugador en turno (p0)
+    expect(s.players[0].bankrupt).toBe(true);
+    expect(s.ownerships[3]).toBeUndefined(); // liquidada al banco
+    expect(s.phase).toBe('ENDED'); // sólo queda un jugador solvente
+    expect(s.winnerId).toBe('p1');
+  });
 });

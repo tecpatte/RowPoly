@@ -4,7 +4,6 @@ import { useGame } from '../store/gameStore';
 import { Board } from './Board';
 import { PlayerPanel } from './PlayerPanel';
 import { ActionBar } from './ActionBar';
-import { EventLog } from './EventLog';
 import { Chat } from './Chat';
 import { BuildModal } from './BuildModal';
 import { TradeModal, TradeBanner } from './TradeModal';
@@ -30,15 +29,14 @@ export function GameView({ board }: { board: BoardData }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-        <div className="order-2 lg:order-1">
-          <Board board={board} state={state} onSelect={setInspect} />
-        </div>
-
-        <div className="order-1 flex flex-col gap-3 lg:order-2 lg:h-[88vh]">
-          <PlayerPanel state={state} meUserId={user.id} />
+        <div className="flex flex-col gap-3">
+          <Board board={board} state={state} onSelect={setInspect} log={events.length ? events : state.log} />
           <ActionBar board={board} state={state} meUserId={user.id} onOpenBuild={() => setModal('build')} onOpenTrade={() => setModal('trade')} />
           <TradeBanner board={board} state={state} meId={meId} />
-          <EventLog events={events.length ? events : state.log} />
+        </div>
+
+        <div className="flex flex-col gap-3 lg:h-[88vh]">
+          <PlayerPanel state={state} meUserId={user.id} />
           <Chat />
         </div>
       </div>
