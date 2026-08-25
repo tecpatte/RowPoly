@@ -43,22 +43,25 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
         <div className="absolute right-0 top-0 z-10 h-0 w-0 border-l-[15px] border-t-[15px] border-l-transparent" style={{ borderTopColor: ownerColor }} />
       )}
 
-      <div className={`relative z-10 flex h-full w-full flex-col items-center justify-center gap-0.5 px-0.5 ${pad}`}>
-        {isCorner ? (
-          <span className="text-[clamp(22px,3.6vw,44px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
-        ) : (
-          SPECIAL_ICON[tile.type] && <span className="text-[clamp(16px,2.6vw,30px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
-        )}
-        <span className={`font-display font-bold leading-[1.05] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${isCorner ? 'text-[clamp(11px,1.8vw,20px)]' : 'text-[clamp(10px,1.7vw,19px)]'} line-clamp-2`}>
-          {tile.name}
-        </span>
+      <div className={`relative z-10 flex h-full w-full flex-col px-0.5 ${pad}`}>
+        {/* Name + icon take the whole cell; price is pinned to the outer edge below. */}
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0.5">
+          {isCorner ? (
+            <span className="text-[clamp(22px,3.6vw,44px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
+          ) : (
+            SPECIAL_ICON[tile.type] && <span className="text-[clamp(15px,2.4vw,28px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
+          )}
+          <span className={`font-display font-bold leading-[1.02] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${isCorner ? 'text-[clamp(10px,1.5vw,16px)]' : 'text-[clamp(9px,1.3vw,15px)]'} line-clamp-2 break-words hyphens-auto`}>
+            {tile.name}
+          </span>
+          {own && (own.hotel || own.houses > 0) && (
+            <span className="text-[clamp(9px,1.5vw,15px)] leading-none drop-shadow">{own.hotel ? '🏨' : '🏠'.repeat(own.houses)}</span>
+          )}
+          {own?.mortgaged && <span className="text-[clamp(7px,1vw,11px)] font-bold text-coral">HIP.</span>}
+        </div>
         {tile.price != null && (
-          <span className="rounded-full bg-black/60 px-1.5 py-[1px] text-[clamp(9px,1.4vw,15px)] font-extrabold text-gold-400 ring-1 ring-white/10">${tile.price}</span>
+          <span className="shrink-0 text-center text-[clamp(7px,1vw,11px)] font-extrabold text-gold-400/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">${tile.price}</span>
         )}
-        {own && (own.hotel || own.houses > 0) && (
-          <span className="text-[clamp(9px,1.5vw,15px)] leading-none drop-shadow">{own.hotel ? '🏨' : '🏠'.repeat(own.houses)}</span>
-        )}
-        {own?.mortgaged && <span className="text-[clamp(7px,1vw,11px)] font-bold text-coral">HIP.</span>}
       </div>
     </div>
   );
