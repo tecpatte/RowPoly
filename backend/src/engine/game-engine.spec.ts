@@ -242,6 +242,14 @@ describe('GameEngine — economía autoritativa', () => {
     expect(s.players[1].money).toBe(1600);
   });
 
+  it('caer justo en la Salida paga bono extra (300 en vez de 200)', () => {
+    const s = fresh();
+    s.players[0].position = 37;
+    roller([[1, 2]]).rollDice(s, 'u1'); // 37 -> 0 (Salida exacta)
+    expect(s.players[0].position).toBe(0);
+    expect(s.players[0].money).toBe(1500 + 300);
+  });
+
   it('rendirse en bancarrota libera propiedades, pasa el turno y puede terminar la partida', () => {
     const s = fresh();
     s.ownerships[3] = own(3, 'p0');

@@ -396,7 +396,14 @@ export class GameEngine {
   private resolveLanding(state: GameState, player: PlayerState, diceTotal: number): void {
     const tile = this.tile(player.position);
     switch (tile.type) {
-      case 'GO':
+      case 'GO': {
+        // Landing exactly on Salida pays a bonus on top of the pass reward
+        // (passGo already credited goReward during the move), so 200 -> 300.
+        const bonus = Math.round(this.config.goReward / 2);
+        this.credit(player, bonus);
+        this.emit(state, { type: 'PASSED_GO', playerId: player.id, message: `${player.nickname} cayó justo en la Salida y cobró $${bonus} extra.`, data: { amount: bonus } });
+        return;
+      }
       case 'JAIL': // just visiting
       case 'FREE_PARKING':
         return; // nothing happens

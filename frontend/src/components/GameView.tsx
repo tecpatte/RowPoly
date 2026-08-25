@@ -3,6 +3,7 @@ import type { BoardData } from '../lib/types';
 import { useGame } from '../store/gameStore';
 import { Board } from './Board';
 import { PlayerPanel } from './PlayerPanel';
+import { MyProperties } from './MyProperties';
 import { ActionBar } from './ActionBar';
 import { EventLog } from './EventLog';
 import { Chat } from './Chat';
@@ -47,6 +48,7 @@ export function GameView({ board }: { board: BoardData }) {
 
         <div className="flex flex-col gap-3 lg:h-[88vh]">
           <PlayerPanel state={state} meUserId={user.id} />
+          <MyProperties board={board} state={state} meId={meId} />
           <Chat />
         </div>
       </div>
