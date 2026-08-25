@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { BoardData, GameState } from '../lib/types';
+import { GRID_TEMPLATE } from '../lib/board';
 import { Tile } from './Tile';
 import { Dice } from './Dice';
 import { TokenLayer } from './TokenLayer';
@@ -10,7 +11,7 @@ export function Board({ board, state, onSelect, center }: { board: BoardData; st
     <div className="mx-auto aspect-square w-full max-w-[min(96vh,1320px)]">
       <div
         className="relative grid h-full w-full gap-[2px] rounded-2xl border border-black/40 bg-gradient-to-br from-base-700 to-base-900 p-[3px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]"
-        style={{ gridTemplateColumns: 'repeat(11,1fr)', gridTemplateRows: 'repeat(11,1fr)' }}
+        style={{ gridTemplateColumns: GRID_TEMPLATE, gridTemplateRows: GRID_TEMPLATE }}
       >
         {board.tiles.map((t) => (
           <Tile key={t.position} tile={t} state={state} onSelect={onSelect} />

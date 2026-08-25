@@ -33,7 +33,7 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={`${tile.name}${tile.price ? `, ${tile.price}` : ''}`}
-      className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[4px] border border-black/30 bg-base-800 text-center outline-none transition focus-visible:ring-2 focus-visible:ring-gold-400 ${isCurrentHere ? 'z-20 ring-2 ring-gold-400 ring-offset-1 ring-offset-black' : ''} ${onSelect ? 'cursor-pointer hover:z-10 hover:ring-2 hover:ring-gold-400/70' : ''}`}
+      className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[6px] border border-black/30 bg-base-800 text-center outline-none transition focus-visible:ring-2 focus-visible:ring-gold-400 ${isCurrentHere ? 'z-20 ring-2 ring-gold-400 ring-offset-1 ring-offset-black' : ''} ${onSelect ? 'cursor-pointer hover:z-10 hover:ring-2 hover:ring-gold-400/70' : ''}`}
     >
       {hasArt && <RegionArt position={tile.position} className="absolute inset-0 [&>svg]:h-full [&>svg]:w-full opacity-90 transition group-hover:scale-105" />}
       {hasArt && <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5" />}
@@ -45,15 +45,15 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
 
       <div className={`relative z-10 flex h-full w-full flex-col items-center justify-center gap-0.5 px-0.5 ${pad}`}>
         {isCorner ? (
-          <span className="text-[clamp(20px,3.2vw,38px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
+          <span className="text-[clamp(22px,3.6vw,44px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
         ) : (
-          SPECIAL_ICON[tile.type] && <span className="text-[clamp(14px,2.2vw,26px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
+          SPECIAL_ICON[tile.type] && <span className="text-[clamp(16px,2.6vw,30px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
         )}
-        <span className={`font-display font-bold leading-[1.08] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${isCorner ? 'text-[clamp(10px,1.5vw,17px)]' : 'text-[clamp(9px,1.45vw,16px)]'} line-clamp-2`}>
+        <span className={`font-display font-bold leading-[1.05] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${isCorner ? 'text-[clamp(11px,1.8vw,20px)]' : 'text-[clamp(10px,1.7vw,19px)]'} line-clamp-2`}>
           {tile.name}
         </span>
         {tile.price != null && (
-          <span className="rounded bg-black/55 px-1 text-[clamp(8.5px,1.25vw,13px)] font-bold text-gold-400">${tile.price}</span>
+          <span className="rounded-full bg-black/60 px-1.5 py-[1px] text-[clamp(9px,1.4vw,15px)] font-extrabold text-gold-400 ring-1 ring-white/10">${tile.price}</span>
         )}
         {own && (own.hotel || own.houses > 0) && (
           <span className="text-[clamp(9px,1.5vw,15px)] leading-none drop-shadow">{own.hotel ? '🏨' : '🏠'.repeat(own.houses)}</span>
