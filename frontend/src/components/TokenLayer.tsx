@@ -127,7 +127,7 @@ export function TokenLayer({ players }: { players: PlayerState[] }) {
         <div
           key={p.id}
           ref={(el) => { if (el) nodes.current.set(p.id, el); }}
-          className="absolute left-0 top-0 h-[3.4%] w-[3.4%] min-h-[16px] min-w-[16px]"
+          className="absolute left-0 top-0 h-[3.8%] w-[3.8%] min-h-[20px] min-w-[20px]"
         >
           {/* Landing pulse ring (behind the token) */}
           <div

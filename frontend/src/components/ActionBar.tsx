@@ -42,7 +42,7 @@ export function ActionBar({
   if (state.phase === 'ENDED') {
     const winner = state.players.find((p) => p.id === state.winnerId);
     return (
-      <div className="card border-gold-400 text-center">
+      <div className="card w-full max-w-sm border-gold-400 text-center">
         <p className="text-sm text-slate-400">Partida terminada</p>
         <p className="mt-1 font-display text-2xl font-bold text-gold-400">🏆 {winner?.nickname ?? '—'} ganó</p>
       </div>
@@ -52,7 +52,7 @@ export function ActionBar({
   const pendingTile = state.pendingBuyPosition != null ? board.tiles.find((t) => t.position === state.pendingBuyPosition) : null;
 
   return (
-    <div className="card p-3">
+    <div className="card w-full max-w-sm p-3">
       <div className="mb-2 flex items-center justify-between text-xs">
         <span className="font-semibold" style={{ color: current?.color }}>
           {myTurn ? 'Tu turno' : `Turno de ${current?.nickname}`}

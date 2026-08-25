@@ -4,6 +4,7 @@ import { useGame } from '../store/gameStore';
 import { Board } from './Board';
 import { PlayerPanel } from './PlayerPanel';
 import { ActionBar } from './ActionBar';
+import { EventLog } from './EventLog';
 import { Chat } from './Chat';
 import { BuildModal } from './BuildModal';
 import { TradeModal, TradeBanner } from './TradeModal';
@@ -19,7 +20,7 @@ export function GameView({ board }: { board: BoardData }) {
   const meId = me?.id ?? '';
 
   return (
-    <div className="mx-auto max-w-[1400px] p-3 lg:p-4">
+    <div className="mx-auto max-w-[1600px] p-2 lg:p-3">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-baseline gap-3">
           <h1 className="font-display text-xl font-bold text-gold-400">ROWPOLY</h1>
@@ -28,10 +29,19 @@ export function GameView({ board }: { board: BoardData }) {
         <button className="btn-ghost py-1 text-sm" onClick={leaveRoom}>Salir</button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-3">
-          <Board board={board} state={state} onSelect={setInspect} log={events.length ? events : state.log} />
-          <ActionBar board={board} state={state} meUserId={user.id} onOpenBuild={() => setModal('build')} onOpenTrade={() => setModal('trade')} />
+          <Board
+            board={board}
+            state={state}
+            onSelect={setInspect}
+            center={
+              <>
+                <ActionBar board={board} state={state} meUserId={user.id} onOpenBuild={() => setModal('build')} onOpenTrade={() => setModal('trade')} />
+                <EventLog events={events.length ? events : state.log} />
+              </>
+            }
+          />
           <TradeBanner board={board} state={state} meId={meId} />
         </div>
 

@@ -12,6 +12,10 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
   const own = state?.ownerships?.[tile.position];
   const ownerColor = own ? state?.players.find((p) => p.id === own.ownerId)?.color : undefined;
   const hasArt = sceneFor(tile.position) !== null;
+  // Highlight the tile the player in turn is standing on, so it's obvious where
+  // the token landed — especially on small screens where tokens are tiny.
+  const current = state?.players[state.currentTurnIndex];
+  const isCurrentHere = !!current && !current.bankrupt && current.position === tile.position && state?.phase !== 'ENDED';
 
   const bar =
     side === 'bottom' ? 'top-0 left-0 right-0 h-[8px]'
@@ -29,7 +33,7 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
       role={onSelect ? 'button' : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-label={`${tile.name}${tile.price ? `, ${tile.price}` : ''}`}
-      className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[4px] border border-black/30 bg-base-800 text-center outline-none transition focus-visible:ring-2 focus-visible:ring-gold-400 ${onSelect ? 'cursor-pointer hover:z-10 hover:ring-2 hover:ring-gold-400/70' : ''}`}
+      className={`group relative flex flex-col items-center justify-center overflow-hidden rounded-[4px] border border-black/30 bg-base-800 text-center outline-none transition focus-visible:ring-2 focus-visible:ring-gold-400 ${isCurrentHere ? 'z-20 ring-2 ring-gold-400 ring-offset-1 ring-offset-black' : ''} ${onSelect ? 'cursor-pointer hover:z-10 hover:ring-2 hover:ring-gold-400/70' : ''}`}
     >
       {hasArt && <RegionArt position={tile.position} className="absolute inset-0 [&>svg]:h-full [&>svg]:w-full opacity-90 transition group-hover:scale-105" />}
       {hasArt && <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5" />}
