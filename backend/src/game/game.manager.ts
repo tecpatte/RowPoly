@@ -315,11 +315,13 @@ export class GameManager {
   // ---- Helpers ------------------------------------------------------------
   private async addMember(room: Room, user: { id: string; nickname: string }) {
     const color = PLAYER_COLORS[room.members.length % PLAYER_COLORS.length];
-    room.members.push({ userId: user.id, nickname: user.nickname, color, connected: true });
+    // Show only the chosen name; the "#suffix" (guest uniqueness) is hidden in-game.
+    const nickname = user.nickname.split('#')[0];
+    room.members.push({ userId: user.id, nickname, color, connected: true });
     await this.prisma.gamePlayer
       .upsert({
         where: { gameId_userId: { gameId: room.id, userId: user.id } },
-        create: { gameId: room.id, userId: user.id, nickname: user.nickname, color, order: room.members.length - 1 },
+        create: { gameId: room.id, userId: user.id, nickname, color, order: room.members.length - 1 },
         update: {},
       })
       .catch(() => {});

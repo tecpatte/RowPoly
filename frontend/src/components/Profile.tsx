@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, money, type HistoryRow, type Profile as ProfileT } from '../lib/api';
+import { api, displayName, money, type HistoryRow, type Profile as ProfileT } from '../lib/api';
 import { useGame } from '../store/gameStore';
 import { Modal } from './BuildModal';
 
@@ -28,7 +28,7 @@ export function Profile({ onClose }: { onClose: () => void }) {
   ];
 
   return (
-    <Modal title={`👤 ${p.nickname}`} onClose={onClose}>
+    <Modal title={`👤 ${displayName(p.nickname)}`} onClose={onClose}>
       <div className="mb-4 grid grid-cols-4 gap-2 text-center">
         {stats.map(([k, v]) => (
           <div key={k} className="rounded-lg bg-base-900/50 p-2">

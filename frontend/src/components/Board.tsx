@@ -6,7 +6,7 @@ import { FxLayer } from './FxLayer';
 
 export function Board({ board, state, onSelect }: { board: BoardData; state: GameState | null; onSelect?: (pos: number) => void }) {
   return (
-    <div className="mx-auto aspect-square w-full max-w-[min(88vh,940px)]">
+    <div className="mx-auto aspect-square w-full max-w-[min(94vh,1120px)]">
       <div
         className="relative grid h-full w-full gap-[2px] rounded-2xl border border-black/40 bg-gradient-to-br from-base-700 to-base-900 p-[3px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]"
         style={{ gridTemplateColumns: 'repeat(11,1fr)', gridTemplateRows: 'repeat(11,1fr)' }}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
+import { api, displayName } from '../lib/api';
 import type { RoomSummary } from '../lib/types';
 import { useGame } from '../store/gameStore';
 import { Profile } from './Profile';
@@ -50,7 +50,7 @@ export function Menu() {
           <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">Monopoly Colombia</p>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <button className="btn-ghost py-1" onClick={() => setShowProfile(true)}>👤 {user?.nickname}</button>
+          <button className="btn-ghost py-1" onClick={() => setShowProfile(true)}>👤 {displayName(user?.nickname)}</button>
           <button className="btn-ghost py-1" onClick={logout}>Salir</button>
         </div>
       </header>

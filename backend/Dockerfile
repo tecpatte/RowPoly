@@ -5,7 +5,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install
+# --include=dev guarantees build tools (nest CLI, tsx, prisma) even if the host
+# sets NODE_ENV=production during the image build (e.g. some PaaS builders).
+RUN npm install --include=dev
 
 COPY . .
 RUN npx prisma generate && npm run build

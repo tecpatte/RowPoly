@@ -130,7 +130,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (win.length >= 5) return socket.emit('error_msg', { message: 'Vas muy rápido con el chat, respira 😅.' });
     win.push(now);
     this.server.to(String(body.code).toUpperCase()).emit('chat', {
-      nickname: user.nickname,
+      nickname: user.nickname.split('#')[0], // hide the guest #suffix
       text,
       at: Date.now(),
     });

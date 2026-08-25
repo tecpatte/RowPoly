@@ -14,12 +14,12 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
   const hasArt = sceneFor(tile.position) !== null;
 
   const bar =
-    side === 'bottom' ? 'top-0 left-0 right-0 h-[6px]'
-    : side === 'top' ? 'bottom-0 left-0 right-0 h-[6px]'
-    : side === 'left' ? 'top-0 right-0 bottom-0 w-[6px]'
-    : 'top-0 left-0 bottom-0 w-[6px]';
+    side === 'bottom' ? 'top-0 left-0 right-0 h-[8px]'
+    : side === 'top' ? 'bottom-0 left-0 right-0 h-[8px]'
+    : side === 'left' ? 'top-0 right-0 bottom-0 w-[8px]'
+    : 'top-0 left-0 bottom-0 w-[8px]';
 
-  const pad = side === 'bottom' ? 'pt-[6px]' : side === 'top' ? 'pb-[6px]' : side === 'left' ? 'pr-[6px]' : 'pl-[6px]';
+  const pad = side === 'bottom' ? 'pt-[8px]' : side === 'top' ? 'pb-[8px]' : side === 'left' ? 'pr-[8px]' : 'pl-[8px]';
 
   return (
     <div
@@ -36,25 +36,25 @@ export function Tile({ tile, state, onSelect }: { tile: TileT; state: GameState 
 
       {tile.color && <div className={`absolute z-10 ${bar}`} style={{ background: tile.color, boxShadow: `0 0 6px ${tile.color}` }} />}
       {ownerColor && (
-        <div className="absolute right-0 top-0 z-10 h-0 w-0 border-l-[12px] border-t-[12px] border-l-transparent" style={{ borderTopColor: ownerColor }} />
+        <div className="absolute right-0 top-0 z-10 h-0 w-0 border-l-[15px] border-t-[15px] border-l-transparent" style={{ borderTopColor: ownerColor }} />
       )}
 
       <div className={`relative z-10 flex h-full w-full flex-col items-center justify-center gap-0.5 px-0.5 ${pad}`}>
         {isCorner ? (
-          <span className="text-[clamp(14px,2.4vw,26px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
+          <span className="text-[clamp(18px,3vw,34px)] leading-none drop-shadow">{CORNER_ICON[tile.type]}</span>
         ) : (
-          SPECIAL_ICON[tile.type] && <span className="text-[clamp(9px,1.4vw,15px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
+          SPECIAL_ICON[tile.type] && <span className="text-[clamp(13px,2vw,22px)] leading-none drop-shadow">{SPECIAL_ICON[tile.type]}</span>
         )}
-        <span className={`font-display font-semibold leading-[1.05] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${isCorner ? 'text-[clamp(7px,1.15vw,11px)]' : 'text-[clamp(6.5px,1vw,10px)]'} line-clamp-2`}>
+        <span className={`font-display font-bold leading-[1.08] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)] ${isCorner ? 'text-[clamp(9px,1.4vw,15px)]' : 'text-[clamp(8.5px,1.3vw,14px)]'} line-clamp-2`}>
           {tile.name}
         </span>
         {tile.price != null && (
-          <span className="rounded-sm bg-black/45 px-1 text-[clamp(6px,0.95vw,9px)] font-bold text-gold-400">${tile.price}</span>
+          <span className="rounded bg-black/55 px-1 text-[clamp(8px,1.15vw,12px)] font-bold text-gold-400">${tile.price}</span>
         )}
         {own && (own.hotel || own.houses > 0) && (
-          <span className="text-[clamp(7px,1.1vw,11px)] leading-none drop-shadow">{own.hotel ? '🏨' : '🏠'.repeat(own.houses)}</span>
+          <span className="text-[clamp(9px,1.5vw,15px)] leading-none drop-shadow">{own.hotel ? '🏨' : '🏠'.repeat(own.houses)}</span>
         )}
-        {own?.mortgaged && <span className="text-[clamp(6px,0.9vw,9px)] font-bold text-coral">HIP.</span>}
+        {own?.mortgaged && <span className="text-[clamp(7px,1vw,11px)] font-bold text-coral">HIP.</span>}
       </div>
     </div>
   );

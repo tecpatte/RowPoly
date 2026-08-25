@@ -123,3 +123,6 @@ export async function ensureAccess(): Promise<string | null> {
 }
 
 export const money = (n: number) => '$' + n.toLocaleString('es-CO');
+
+// Hide the guest "#suffix" — show only the chosen name.
+export const displayName = (n: string | undefined | null) => (n ?? '').split('#')[0];
