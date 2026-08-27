@@ -75,16 +75,24 @@ export interface GameEvent {
   at: number;
 }
 
+export interface PendingDebt {
+  playerId: string;
+  amount: number;
+  creditorId: string | null;
+  reason: string;
+}
+
 export interface GameState {
   id: string;
   code: string;
-  phase: 'WAITING' | 'ROLLING' | 'DECISION' | 'ACTION' | 'ENDED';
+  phase: 'WAITING' | 'ROLLING' | 'DECISION' | 'ACTION' | 'DEBT' | 'ENDED';
   players: PlayerState[];
   currentTurnIndex: number;
   dice: [number, number] | null;
   doublesCount: number;
   ownerships: Record<number, Ownership>;
   pendingBuyPosition: number | null;
+  pendingDebt: PendingDebt | null;
   trades: Trade[];
   log: GameEvent[];
   winnerId: string | null;

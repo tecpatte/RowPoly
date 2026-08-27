@@ -45,6 +45,7 @@ type Command =
   | 'MORTGAGE'
   | 'UNMORTGAGE'
   | 'SELL_BUILDING'
+  | 'PAY_DEBT'
   | 'PAY_BAIL'
   | 'PROPOSE_TRADE'
   | 'RESPOND_TRADE'
@@ -207,6 +208,9 @@ export class GameManager {
         break;
       case 'SELL_BUILDING':
         events = engine.sellBuilding(state, userId, Number(payload?.position));
+        break;
+      case 'PAY_DEBT':
+        events = engine.payDebt(state, userId);
         break;
       case 'PAY_BAIL':
         events = engine.payBail(state, userId);

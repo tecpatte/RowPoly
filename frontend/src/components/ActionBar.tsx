@@ -86,6 +86,24 @@ export function ActionBar({
         </div>
       )}
 
+      {myTurn && state.phase === 'DEBT' && state.pendingDebt && (
+        <div className="space-y-2">
+          <p className="text-center text-sm font-semibold text-coral">
+            Debes {money(state.pendingDebt.amount)}. Vende o hipoteca para reunir el dinero.
+          </p>
+          <p className="text-center text-xs text-slate-400">Tienes {money(me?.money ?? 0)}</p>
+          <button className="btn-ghost w-full" onClick={onOpenBuild}>🏠 Vender / Hipotecar</button>
+          <button
+            className="btn-emerald w-full"
+            disabled={(me?.money ?? 0) < state.pendingDebt.amount}
+            onClick={() => command('PAY_DEBT')}
+          >
+            Pagar {money(state.pendingDebt.amount)}
+          </button>
+          <p className="text-center text-[11px] text-slate-500">Si no puedes cubrirlo, declárate en bancarrota abajo.</p>
+        </div>
+      )}
+
       {myTurn && state.phase === 'ACTION' && (
         <div className="flex flex-wrap gap-2">
           <button className="btn-ghost flex-1" onClick={onOpenBuild}>🏠 Propiedades</button>

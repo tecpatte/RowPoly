@@ -16,8 +16,8 @@ const COLOR: Record<string, string> = {
 // Events that move money: the amount floats up over the tile, so every
 // transaction shows its value explicitly. Sign tints it green (in) / coral (out).
 const MONEY: Record<string, number> = {
-  PROPERTY_PURCHASED: -1, RENT_PAID: -1, TAX_PAID: -1,
-  PASSED_GO: +1,
+  PROPERTY_PURCHASED: -1, RENT_PAID: -1, TAX_PAID: -1, CARD_PAID: -1, DEBT_PAID: -1,
+  PASSED_GO: +1, CARD_RECEIVED: +1,
 };
 
 export function FxLayer() {

@@ -242,6 +242,59 @@ describe('GameEngine — economía autoritativa', () => {
     expect(s.players[1].money).toBe(1600);
   });
 
+  it('una carta de dinero emite el monto (cobró/pagó) para el log y la animación', () => {
+    const s = fresh();
+    s.players[0].position = 39;
+    s.deckOrder.QUE_MAS_PUES = [0]; // qmp-01: RECEIVE_MONEY $150
+    s.deckPointers.QUE_MAS_PUES = 0;
+    const before = s.players[0].money;
+    const events = roller([[1, 2]]).rollDice(s, 'u1'); // 39 -> 2 (casilla ¿Qué más pues?)
+    const money = events.find((e) => e.type === 'CARD_RECEIVED');
+    expect(money).toBeDefined();
+    expect((money!.data as any).amount).toBe(150);
+    expect(s.players[0].money).toBe(before + 200 + 150); // GO + carta
+  });
+
+  it('sin cash para la renta entra en DEBT y puede hipotecar y pagar antes de quebrar', () => {
+    const s = fresh();
+    s.ownerships[6] = own(6, 'p0');  // Santa Marta de Ana, renta base 6
+    s.ownerships[1] = own(1, 'p1');  // Sincelejo de Beto, hipoteca 30
+    s.players[1].money = 1;
+    s.players[1].position = 3;
+    s.currentTurnIndex = 1; // turno de Beto
+    const e = roller([[1, 2]]);
+    e.rollDice(s, 'u2'); // 3 -> 6, renta 6 > 1
+    expect(s.phase).toBe('DEBT');
+    expect(s.players[1].bankrupt).toBe(false);
+    expect(s.pendingDebt).toMatchObject({ playerId: 'p1', amount: 6, creditorId: 'p0' });
+    expect(s.players[0].money).toBe(1500); // el acreedor aún no cobra
+
+    e.mortgageProperty(s, 'u2', 1); // +30 -> 31
+    expect(s.players[1].money).toBe(31);
+    e.payDebt(s, 'u2');
+    expect(s.pendingDebt).toBeNull();
+    expect(s.phase).toBe('ACTION');
+    expect(s.players[1].money).toBe(25); // 31 - 6
+    expect(s.players[0].money).toBe(1506); // ahora sí cobra la renta
+    expect(s.players[1].bankrupt).toBe(false);
+  });
+
+  it('rendirse durante DEBT cede las propiedades al acreedor', () => {
+    const s = fresh();
+    s.ownerships[6] = own(6, 'p0');
+    s.ownerships[1] = own(1, 'p1');
+    s.players[1].money = 1;
+    s.players[1].position = 3;
+    s.currentTurnIndex = 1;
+    const e = roller([[1, 2]]);
+    e.rollDice(s, 'u2');
+    expect(s.phase).toBe('DEBT');
+    e.declareBankruptcy(s, 'u2');
+    expect(s.players[1].bankrupt).toBe(true);
+    expect(s.ownerships[1].ownerId).toBe('p0'); // Sincelejo pasa al acreedor
+    expect(s.pendingDebt).toBeNull();
+  });
+
   it('elimina al jugador tras 2 turnos sin jugar y libera sus propiedades', () => {
     const e = new GameEngine(BOARD, CARDS, GAME_CONFIG);
     const s = e.createGame('g3', 'ELIM', [

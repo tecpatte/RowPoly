@@ -9,6 +9,7 @@ import {
   GameState,
   Group,
   Ownership,
+  PendingDebt,
   Phase,
   PlayerState,
   Tile,
@@ -76,6 +77,7 @@ export class GameEngine {
       doublesCount: 0,
       ownerships: {},
       pendingBuyPosition: null,
+      pendingDebt: null,
       trades: [],
       deckPointers: { QUE_MAS_PUES: 0, LA_VUELTA: 0 },
       deckOrder: {
@@ -141,7 +143,7 @@ export class GameEngine {
       this.finishTurn(state);
       return state.log.slice(start);
     }
-    if (state.pendingBuyPosition === null && !player.inJail && phase !== 'DECISION') {
+    if (state.pendingBuyPosition === null && !player.inJail && phase !== 'DECISION' && phase !== 'DEBT') {
       state.phase = 'ACTION';
     }
     return state.log.slice(start);
@@ -227,7 +229,7 @@ export class GameEngine {
   // Sell one building back to the bank for half cost. A hotel downgrades to 4 houses.
   sellBuilding(state: GameState, userId: string, position: number): GameEvent[] {
     const player = this.requireTurn(state, userId);
-    if (state.phase !== 'ACTION') throw new Error('Solo puedes vender en tu turno, tras mover.');
+    if (state.phase !== 'ACTION' && state.phase !== 'DEBT') throw new Error('Solo puedes vender en tu turno, tras mover.');
     const owner = state.ownerships[position];
     const tile = this.tile(position);
     if (!owner || owner.ownerId !== player.id) throw new Error('No eres dueño de esa propiedad.');
@@ -245,6 +247,24 @@ export class GameEngine {
     } else {
       throw new Error('No hay construcciones para vender.');
     }
+    return state.log.slice(start);
+  }
+
+  // Settle a pending debt once the player has raised enough cash (by selling /
+  // mortgaging). Resumes the turn in ACTION so they can keep playing / end it.
+  payDebt(state: GameState, userId: string): GameEvent[] {
+    const player = this.requireTurn(state, userId);
+    const debt = state.pendingDebt;
+    if (!debt || state.phase !== 'DEBT' || debt.playerId !== player.id) throw new Error('No tienes ninguna deuda pendiente.');
+    if (player.money < debt.amount) throw new Error('Aún no te alcanza. Vende o hipoteca más para reunir el monto.');
+    const start = state.log.length;
+    player.money -= debt.amount;
+    player.totalSpent += debt.amount;
+    if (debt.creditorId) this.credit(this.player(state, debt.creditorId), debt.amount);
+    state.pendingDebt = null;
+    state.phase = 'ACTION';
+    const to = debt.creditorId ? ` a ${this.player(state, debt.creditorId).nickname}` : '';
+    this.emit(state, { type: 'DEBT_PAID', playerId: player.id, message: `${player.nickname} saldó su deuda de $${debt.amount}${to}.`, data: { amount: debt.amount, to: debt.creditorId, position: player.position } });
     return state.log.slice(start);
   }
 
@@ -281,6 +301,16 @@ export class GameEngine {
   forceEndTurn(state: GameState): GameEvent[] {
     const start = state.log.length;
     const player = this.current(state);
+    // Timed out with an unpaid debt → they couldn't raise the cash; bankrupt them
+    // to the creditor (or the bank) instead of letting the table stall.
+    if (state.pendingDebt && state.pendingDebt.playerId === player.id) {
+      const { creditorId } = state.pendingDebt;
+      state.pendingDebt = null;
+      this.emit(state, { type: 'TURN_TIMEOUT', playerId: player.id, message: `${player.nickname} no pagó su deuda a tiempo.` });
+      this.bankrupt(state, player, creditorId, 'no pagó su deuda');
+      if ((state.phase as Phase) !== 'ENDED') this.finishTurn(state);
+      return state.log.slice(start);
+    }
     player.missedTurns += 1;
     this.emit(state, { type: 'TURN_TIMEOUT', playerId: player.id, message: `${player.nickname} se pasó de tiempo (${player.missedTurns}/2).`, data: { missedTurns: player.missedTurns } });
     // Cancel any pending buy / doubles chain and move on.
@@ -360,7 +390,10 @@ export class GameEngine {
     if (player.bankrupt) throw new Error('Ya estás fuera de la partida.');
     const start = state.log.length;
     const wasCurrent = this.current(state).id === player.id;
-    this.bankrupt(state, player, null, 'se rindió');
+    // If they're surrendering under a debt, their assets go to that creditor.
+    const creditorId = state.pendingDebt?.playerId === player.id ? state.pendingDebt.creditorId : null;
+    if (state.pendingDebt?.playerId === player.id) state.pendingDebt = null;
+    this.bankrupt(state, player, creditorId, 'se rindió');
     if (wasCurrent && (state.phase as Phase) !== 'ENDED') this.finishTurn(state);
     return state.log.slice(start);
   }
@@ -422,13 +455,15 @@ export class GameEngine {
         return;
       case 'TAX': {
         const tax = tile.taxAmount ?? 0;
-        this.charge(state, player, tax, null, `Impuesto: ${tile.name}`);
-        this.emit(state, {
-          type: 'TAX_PAID',
-          playerId: player.id,
-          message: `${player.nickname} pagó $${tax} de ${tile.name}.`,
-          data: { amount: tax, position: player.position },
-        });
+        const paid = this.charge(state, player, tax, null, `Impuesto: ${tile.name}`, true);
+        if (paid) {
+          this.emit(state, {
+            type: 'TAX_PAID',
+            playerId: player.id,
+            message: `${player.nickname} pagó $${tax} de ${tile.name}.`,
+            data: { amount: tax, position: player.position },
+          });
+        }
         return;
       }
       case 'CARD':
@@ -449,13 +484,15 @@ export class GameEngine {
         if (owner.ownerId === player.id || owner.mortgaged) return;
         const rent = this.calculateRent(state, player.position, diceTotal);
         const ownerPlayer = this.player(state, owner.ownerId);
-        this.charge(state, player, rent, owner.ownerId, `Renta de ${tile.name}`);
-        this.emit(state, {
-          type: 'RENT_PAID',
-          playerId: player.id,
-          message: `${player.nickname} le pagó $${rent} de renta a ${ownerPlayer.nickname}.`,
-          data: { amount: rent, to: owner.ownerId, position: player.position },
-        });
+        const paid = this.charge(state, player, rent, owner.ownerId, `Renta de ${tile.name}`, true);
+        if (paid) {
+          this.emit(state, {
+            type: 'RENT_PAID',
+            playerId: player.id,
+            message: `${player.nickname} le pagó $${rent} de renta a ${ownerPlayer.nickname}.`,
+            data: { amount: rent, to: owner.ownerId, position: player.position },
+          });
+        }
         return;
       }
     }
@@ -497,12 +534,13 @@ export class GameEngine {
 
   private resolveCard(state: GameState, player: PlayerState, card: Card): void {
     const amt = card.amount ?? 0;
+    const moneyBefore = player.money; // used to surface the exact monto in the log/animation
     switch (card.action) {
       case 'RECEIVE_MONEY':
         this.credit(player, amt);
         break;
       case 'PAY_MONEY':
-        this.charge(state, player, amt, null, card.title);
+        this.charge(state, player, amt, null, card.title, true);
         break;
       case 'MOVE_FORWARD':
         this.movePlayer(state, player, card.movement ?? 0);
@@ -534,7 +572,7 @@ export class GameEngine {
         }
         break;
       case 'PAY_PER_PROPERTY':
-        this.charge(state, player, amt * this.ownedCount(state, player.id), null, card.title);
+        this.charge(state, player, amt * this.ownedCount(state, player.id), null, card.title, true);
         break;
       case 'RECEIVE_PER_PROPERTY':
         this.credit(player, amt * this.ownedCount(state, player.id));
@@ -551,6 +589,18 @@ export class GameEngine {
           this.charge(state, p, amt, player.id, card.title);
         }
         break;
+    }
+    // Surface the exact monto the card moved for the drawing player, so the log
+    // reads "cobró/pagó $X" and the board floats the amount (money animation).
+    const delta = player.money - moneyBefore;
+    if (delta !== 0) {
+      const gained = delta > 0;
+      this.emit(state, {
+        type: gained ? 'CARD_RECEIVED' : 'CARD_PAID',
+        playerId: player.id,
+        message: `${player.nickname} ${gained ? 'cobró' : 'pagó'} $${Math.abs(delta)} — ${card.title}.`,
+        data: { amount: Math.abs(delta), position: player.position },
+      });
     }
     this.emit(state, { type: 'CARD_RESOLVED', playerId: player.id, message: `Se resolvió "${card.title}".`, data: { cardId: card.id } });
   }
@@ -597,17 +647,49 @@ export class GameEngine {
     player.totalEarned += amount;
   }
 
-  private charge(state: GameState, player: PlayerState, amount: number, creditorId: string | null, reason: string): void {
-    if (amount <= 0) return;
+  // Returns true when the charge was paid in full with cash. Returns false when
+  // the player couldn't pay — either the turn pauses in DEBT so they can
+  // sell/mortgage first (allowDebt + it's their turn + they own liquidatable
+  // assets), or they go straight to bankruptcy.
+  private charge(state: GameState, player: PlayerState, amount: number, creditorId: string | null, reason: string, allowDebt = false): boolean {
+    if (amount <= 0) return true;
     if (player.money >= amount) {
       player.money -= amount;
       player.totalSpent += amount;
       if (creditorId) this.credit(this.player(state, creditorId), amount);
-      return;
+      return true;
     }
-    // Insufficient funds → bankruptcy. MVP: no partial mortgage flow.
-    // ponytail: instant liquidation to creditor/bank; add asset-selling UI when players ask.
+    // Can't cover it in cash. Give the current player the chance to raise funds
+    // by selling buildings / mortgaging before we bankrupt them.
+    if (allowDebt && player.id === this.current(state).id && !state.pendingDebt && this.raisableValue(state, player.id) > 0) {
+      const debt: PendingDebt = { playerId: player.id, amount, creditorId, reason };
+      state.pendingDebt = debt;
+      state.phase = 'DEBT';
+      this.emit(state, {
+        type: 'DEBT_INCURRED',
+        playerId: player.id,
+        message: `${player.nickname} debe $${amount} (${reason}). Vende o hipoteca para pagar, o ríndete.`,
+        data: { amount, creditorId },
+      });
+      return false;
+    }
+    // Nothing to liquidate (or not their turn) → straight to bankruptcy.
     this.bankrupt(state, player, creditorId, reason);
+    return false;
+  }
+
+  // Cash a player could raise by liquidating everything: half-price on each
+  // unmortgaged property plus the sell-back value of any buildings.
+  private raisableValue(state: GameState, ownerId: string): number {
+    let total = 0;
+    for (const o of Object.values(state.ownerships)) {
+      if (o.ownerId !== ownerId) continue;
+      const tile = this.tile(o.position);
+      if (o.hotel) total += Math.floor((tile.hotelCost ?? 0) / 2);
+      total += o.houses * Math.floor((tile.houseCost ?? 0) / 2);
+      if (!o.mortgaged) total += Math.floor((tile.price ?? 0) / 2);
+    }
+    return total;
   }
 
   private bankrupt(state: GameState, player: PlayerState, creditorId: string | null, reason: string): void {
@@ -652,7 +734,7 @@ export class GameEngine {
       player.jailTurns = 0;
       this.emit(state, { type: 'JAIL_RELEASED', playerId: player.id, message: `${player.nickname} salió del Calabozo con dobles.` });
       this.movePlayer(state, player, total);
-      if (state.phase !== 'DECISION' && !player.inJail) state.phase = 'ACTION';
+      if (state.phase !== 'DECISION' && state.phase !== 'DEBT' && !player.inJail) state.phase = 'ACTION';
       return;
     }
     player.jailTurns += 1;
@@ -663,7 +745,7 @@ export class GameEngine {
       player.jailTurns = 0;
       this.emit(state, { type: 'JAIL_RELEASED', playerId: player.id, message: `${player.nickname} pagó la fianza y salió.` });
       this.movePlayer(state, player, total);
-      if (state.phase !== 'DECISION' && !player.inJail) state.phase = 'ACTION';
+      if (state.phase !== 'DECISION' && state.phase !== 'DEBT' && !player.inJail) state.phase = 'ACTION';
       return;
     }
     this.emit(state, { type: 'JAIL_STAY', playerId: player.id, message: `${player.nickname} sigue en el Calabozo.` });
@@ -690,6 +772,7 @@ export class GameEngine {
     state.doublesCount = 0;
     state.dice = null;
     state.pendingBuyPosition = null;
+    state.pendingDebt = null;
     // Advance to next solvent player, honouring skipNextTurn.
     let guard = 0;
     do {

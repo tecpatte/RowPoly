@@ -8,6 +8,8 @@ const ICON: Record<string, string> = {
   TAX_PAID: '🧾', TRADE_PROPOSED: '📩', TRADE_REJECTED: '🚫',
   TURN_TIMEOUT: '⏰', PLAYER_ELIMINATED: '❌',
   PROPERTY_MORTGAGED: '🏦', PROPERTY_UNMORTGAGED: '🏦', BUILDING_SOLD: '🔨',
+  CARD_RECEIVED: '💰', CARD_PAID: '💸',
+  DEBT_INCURRED: '⚠️', DEBT_PAID: '✅',
 };
 
 // Keep the log short: roughly the last 5-6 turns' worth of lines so it never

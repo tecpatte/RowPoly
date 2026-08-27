@@ -97,7 +97,15 @@ export type Phase =
   | 'ROLLING'
   | 'DECISION' // player landed on unowned buyable property
   | 'ACTION' // player may build/trade/end turn
+  | 'DEBT' // player owes more than their cash; must sell/mortgage or go bankrupt
   | 'ENDED';
+
+export interface PendingDebt {
+  playerId: string;
+  amount: number;
+  creditorId: string | null; // null = owed to the bank
+  reason: string;
+}
 
 export interface PlayerState {
   id: string; // in-game player id
@@ -148,6 +156,7 @@ export interface GameState {
   doublesCount: number;
   ownerships: Record<number, Ownership>; // keyed by position
   pendingBuyPosition: number | null;
+  pendingDebt: PendingDebt | null;
   trades: Trade[];
   deckPointers: Record<Deck, number>; // shuffled draw pointer
   deckOrder: Record<Deck, number[]>; // shuffled card indexes
