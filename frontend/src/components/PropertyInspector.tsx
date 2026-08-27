@@ -2,13 +2,14 @@ import type { BoardData, GameState } from '../lib/types';
 import { money } from '../lib/api';
 import { GROUP_LABEL } from '../lib/board';
 import { RegionArt, sceneFor } from '../lib/regionArt';
-import { Modal } from './BuildModal';
+import { Modal, PropertyActions } from './BuildModal';
 
-export function PropertyInspector({ board, state, position, onClose }: { board: BoardData; state: GameState; position: number; onClose: () => void }) {
+export function PropertyInspector({ board, state, position, meId, onClose }: { board: BoardData; state: GameState; position: number; meId: string; onClose: () => void }) {
   const tile = board.tiles.find((t) => t.position === position)!;
   const own = state.ownerships[position];
   const owner = own ? state.players.find((p) => p.id === own.ownerId) : null;
   const isProp = tile.type === 'PROPERTY';
+  const isMine = own?.ownerId === meId;
 
   const rows: Array<[string, string]> = [];
   if (isProp) {
@@ -58,6 +59,13 @@ export function PropertyInspector({ board, state, position, onClose }: { board: 
             ))}
           </tbody>
         </table>
+      )}
+
+      {isMine && (
+        <div className="mt-2 border-t border-base-700 pt-2">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-500">Tu propiedad</p>
+          <PropertyActions board={board} state={state} meId={meId} position={position} />
+        </div>
       )}
 
       {tile.type === 'TRANSPORT' && (

@@ -55,6 +55,9 @@ export function PlayerPanel({ state, meUserId }: { state: GameState; meUserId: s
                   {p.userId === meUserId && <span className="text-[10px] text-gold-400">(tú)</span>}
                   {!p.connected && <span title="Desconectado">📴</span>}
                   {p.inJail && <span title="En el Calabozo">🔒</span>}
+                  {!p.bankrupt && p.missedTurns > 0 && (
+                    <span className="text-[10px] font-bold text-coral" title="Turnos sin jugar. A los 2 queda eliminado.">⚠️ {p.missedTurns}/2</span>
+                  )}
                 </div>
                 <div className="text-[11px] text-slate-400">{props} propiedades{p.bankrupt && ' · en quiebra'}</div>
               </div>

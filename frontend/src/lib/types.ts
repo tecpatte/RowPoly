@@ -45,6 +45,7 @@ export interface PlayerState {
   bankrupt: boolean;
   connected: boolean;
   skipNextTurn: boolean;
+  missedTurns: number;
 }
 
 export interface Ownership {

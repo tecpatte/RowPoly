@@ -134,6 +134,7 @@ export const GAME_CONFIG: GameConfig = {
   utilityMultiplier: [4, 10],
   maxHousesBeforeHotel: 4,
   turnSeconds: 90,
+  maxMissedTurns: 2,
 };
 
 export const PLAYER_COLORS = [

@@ -5,6 +5,9 @@ const ICON: Record<string, string> = {
   DICE_ROLLED: '🎲', PROPERTY_PURCHASED: '🏷️', RENT_PAID: '💸', PASSED_GO: '🏁',
   CARD_DRAWN: '🎴', SENT_TO_JAIL: '🚔', JAIL_RELEASED: '🔓', PROPERTY_BUILT: '🏠',
   PLAYER_BANKRUPT: '💥', GAME_FINISHED: '🏆', TRADE_ACCEPTED: '🤝', TURN_STARTED: '▶️',
+  TAX_PAID: '🧾', TRADE_PROPOSED: '📩', TRADE_REJECTED: '🚫',
+  TURN_TIMEOUT: '⏰', PLAYER_ELIMINATED: '❌',
+  PROPERTY_MORTGAGED: '🏦', PROPERTY_UNMORTGAGED: '🏦', BUILDING_SOLD: '🔨',
 };
 
 // Keep the log short: roughly the last 5-6 turns' worth of lines so it never

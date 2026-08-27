@@ -66,6 +66,7 @@ export class GameEngine {
         bankrupt: false,
         connected: true,
         skipNextTurn: false,
+        missedTurns: 0,
         totalEarned: 0,
         totalSpent: 0,
         propsBought: 0,
@@ -95,6 +96,7 @@ export class GameEngine {
   rollDice(state: GameState, userId: string): GameEvent[] {
     const player = this.requireTurn(state, userId);
     if (state.phase !== 'ROLLING') throw new Error('No es momento de lanzar los dados.');
+    player.missedTurns = 0; // played this turn → reset the inactivity counter
     const start = state.log.length;
 
     const d1 = this.die();
@@ -279,11 +281,18 @@ export class GameEngine {
   forceEndTurn(state: GameState): GameEvent[] {
     const start = state.log.length;
     const player = this.current(state);
-    this.emit(state, { type: 'TURN_TIMEOUT', playerId: player.id, message: `${player.nickname} se pasó de tiempo.` });
+    player.missedTurns += 1;
+    this.emit(state, { type: 'TURN_TIMEOUT', playerId: player.id, message: `${player.nickname} se pasó de tiempo (${player.missedTurns}/2).`, data: { missedTurns: player.missedTurns } });
     // Cancel any pending buy / doubles chain and move on.
     state.pendingBuyPosition = null;
     state.doublesCount = 0;
-    this.finishTurn(state);
+    // Two consecutive timeouts → eliminate the player and free their properties
+    // (creditor null ⇒ ownerships deleted, so they're buyable again).
+    if (player.missedTurns >= this.config.maxMissedTurns) {
+      this.emit(state, { type: 'PLAYER_ELIMINATED', playerId: player.id, message: `${player.nickname} fue eliminado por no jugar en ${this.config.maxMissedTurns} turnos. Sus propiedades quedaron libres.`, data: { playerId: player.id } });
+      this.bankrupt(state, player, null, `no jugó en ${this.config.maxMissedTurns} turnos`);
+    }
+    if ((state.phase as Phase) !== 'ENDED') this.finishTurn(state);
     return state.log.slice(start);
   }
 
@@ -411,9 +420,17 @@ export class GameEngine {
         this.sendToJail(state, player);
         this.finishTurn(state);
         return;
-      case 'TAX':
-        this.charge(state, player, tile.taxAmount ?? 0, null, `Impuesto: ${tile.name}`);
+      case 'TAX': {
+        const tax = tile.taxAmount ?? 0;
+        this.charge(state, player, tax, null, `Impuesto: ${tile.name}`);
+        this.emit(state, {
+          type: 'TAX_PAID',
+          playerId: player.id,
+          message: `${player.nickname} pagó $${tax} de ${tile.name}.`,
+          data: { amount: tax, position: player.position },
+        });
         return;
+      }
       case 'CARD':
         this.drawCard(state, player, tile.deck!);
         return;

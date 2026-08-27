@@ -81,6 +81,7 @@ export interface GameConfig {
   utilityMultiplier: [number, number]; // dice * m when owning 1 or 2 utilities
   maxHousesBeforeHotel: number;
   turnSeconds: number;
+  maxMissedTurns: number; // consecutive timeouts before a player is eliminated
 }
 
 export interface Ownership {
@@ -111,6 +112,7 @@ export interface PlayerState {
   bankrupt: boolean;
   connected: boolean;
   skipNextTurn: boolean;
+  missedTurns: number; // consecutive turn timeouts; eliminated at 2
   // Cumulative stats for the profile / leaderboard.
   totalEarned: number;
   totalSpent: number;

@@ -242,6 +242,31 @@ describe('GameEngine — economía autoritativa', () => {
     expect(s.players[1].money).toBe(1600);
   });
 
+  it('elimina al jugador tras 2 turnos sin jugar y libera sus propiedades', () => {
+    const e = new GameEngine(BOARD, CARDS, GAME_CONFIG);
+    const s = e.createGame('g3', 'ELIM', [
+      { userId: 'u1', nickname: 'Ana' },
+      { userId: 'u2', nickname: 'Beto' },
+      { userId: 'u3', nickname: 'Caro' },
+    ], PLAYER_COLORS);
+    s.ownerships[3] = own(3, 'p0');
+    e.forceEndTurn(s); // p0 se pasa (1/2), sigue en juego
+    expect(s.players[0].bankrupt).toBe(false);
+    expect(s.players[0].missedTurns).toBe(1);
+    s.currentTurnIndex = 0; // la ronda vuelve a p0
+    e.forceEndTurn(s); // p0 se pasa (2/2) -> eliminado
+    expect(s.players[0].bankrupt).toBe(true);
+    expect(s.ownerships[3]).toBeUndefined(); // propiedad libre para comprar
+    expect(s.phase).not.toBe('ENDED'); // aún quedan 2 jugadores
+  });
+
+  it('jugar (lanzar dados) reinicia el contador de turnos perdidos', () => {
+    const s = fresh();
+    s.players[0].missedTurns = 1;
+    roller([[1, 2]]).rollDice(s, 'u1');
+    expect(s.players[0].missedTurns).toBe(0);
+  });
+
   it('caer justo en la Salida paga bono extra (300 en vez de 200)', () => {
     const s = fresh();
     s.players[0].position = 37;
